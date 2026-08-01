@@ -1,14 +1,6 @@
-import { initializeApp } from 'firebase/app'
-import {
-  createUserWithEmailAndPassword,
-  getAuth,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-} from 'firebase/auth'
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbyaqdvaKDwIyXPjntW1wWi_Ui8EPwWKQ",
@@ -20,45 +12,10 @@ const firebaseConfig = {
   measurementId: "G-H9NYDFD8CH"
 };
 
-// Initialize Firebase
 const isFirebaseConfigured = Object.values(firebaseConfig).every(Boolean)
 const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
 const auth = app ? getAuth(app) : null
-const googleProvider = auth ? new GoogleAuthProvider() : null
-
-if (googleProvider) {
-  googleProvider.setCustomParameters({ prompt: 'select_account' })
-}
-
-export const signInWithGoogle = async () => {
-  if (!auth || !googleProvider) {
-    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
-  }
-
-  return signInWithPopup(auth, googleProvider)
-}
-
-export const createAccount = async (email, password, username) => {
-  if (!auth) {
-    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
-  }
-
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-
-  if (username?.trim()) {
-    await updateProfile(userCredential.user, { displayName: username.trim() })
-  }
-
-  return userCredential
-}
-
-export const loginWithEmail = async (email, password) => {
-  if (!auth) {
-    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
-  }
-
-  return signInWithEmailAndPassword(auth, email, password)
-}
+const db = app ? getFirestore(app) : null
 
 export const logout = async () => {
   if (!auth) {
@@ -76,4 +33,4 @@ export const listenForAuthChanges = (callback) => {
   return onAuthStateChanged(auth, callback)
 }
 
-export { app, auth, googleProvider, isFirebaseConfigured }
+export { app, auth, db, isFirebaseConfigured };

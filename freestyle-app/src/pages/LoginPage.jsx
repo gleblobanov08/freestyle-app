@@ -1,9 +1,27 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { isFirebaseConfigured, loginWithEmail, signInWithGoogle } from '../firebase'
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db, isFirebaseConfigured } from '../firebase'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^.{6,20}$/
+
+const ensureUserProfileDocument = async (user, authProvider) => {
+  if (!db) {
+    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
+  }
+
+  await setDoc(
+    doc(db, 'users', user.uid),
+    {
+      name: user.displayName || user.email?.split('@')[0] || '',
+      email: user.email || '',
+      authProvider,
+    },
+    { merge: true }
+  )
+}
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -30,7 +48,11 @@ function LoginPage() {
     }
 
     try {
-      await loginWithEmail(email, password)
+      if (!auth) {
+        throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
+      }
+
+      await signInWithEmailAndPassword(auth, email, password)
       navigate('/')
     } catch (error) {
       setMessage(error.message)
@@ -44,7 +66,16 @@ function LoginPage() {
     setMessage('')
 
     try {
-      await signInWithGoogle()
+      if (!auth) {
+        throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
+      }
+
+      const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({ prompt: 'select_account' })
+
+      const userCredential = await signInWithPopup(auth, provider)
+      await ensureUserProfileDocument(userCredential.user, 'google')
+
       navigate('/')
     } catch (error) {
       setMessage(error.message)
@@ -97,7 +128,7 @@ function LoginPage() {
         <div className="divider"><span>or continue with</span></div>
 
         <button type="button" className="google-button" onClick={handleGoogleAuth} disabled={loading || !isFirebaseConfigured}>
-          Google sign in
+          Google sign-in
         </button>
 
         <p className="inline-copy">

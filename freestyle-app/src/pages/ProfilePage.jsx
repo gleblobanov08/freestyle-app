@@ -1,12 +1,92 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '../firebase'
+import { TRICKS_DATA } from '../data/tricksData'
+
+const CATEGORY_LABELS = {
+  l: 'Lowers',
+  u: 'Uppers',
+  s: 'Sitting',
+  o: 'Other',
+}
 
 function ProfilePage({ user }) {
+  const [masteredTricks, setMasteredTricks] = useState([])
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const loadMasteredTricks = async () => {
+      if (!user?.uid || !db) {
+        setMasteredTricks([])
+        return
+      }
+
+      try {
+        const masteredSnapshot = await getDocs(collection(db, 'users', user.uid, 'masteredTricks'))
+        const trickIds = masteredSnapshot.docs.map((item) => item.id)
+        const trickDetails = TRICKS_DATA.filter((trick) => trickIds.includes(trick.id))
+
+        setMasteredTricks(trickDetails)
+      } catch (error) {
+        console.error('Failed to load mastered tricks for profile:', error)
+        setMessage('Could not load your mastered tricks. Check Firestore rules and auth.')
+      }
+    }
+
+    loadMasteredTricks()
+  }, [user])
+
+  const groupedMasteredTricks = Object.entries(CATEGORY_LABELS).map(([key, label]) => ({
+    key,
+    label,
+    tricks: masteredTricks.filter((trick) => trick.category === key),
+  }))
+
   return (
     <main className="app-shell">
-      <section className="auth-card">
-        <h1>Profile</h1>
+      <section className="auth-card profile-panel">
+        <div className="items-header">
+          <div>
+            <p className="eyebrow">Your profile</p>
+            <h1>Profile</h1>
+          </div>
+          <Link className="inline-link" to="/">Back to home</Link>
+        </div>
+
         <p className="helper-text">{user?.displayName || user?.email || 'Google User'}</p>
-        <Link className="inline-link" to="/">Back to home</Link>
+
+        <div className="detail-card">
+          <strong>Mastered</strong>
+
+          {message ? <p className="status-message">{message}</p> : null}
+
+          {masteredTricks.length > 0 ? (
+            <div className="mastered-groups">
+              {groupedMasteredTricks.map((group) => (
+                <div key={group.key} className="mastered-group">
+                  <h3>{group.label}</h3>
+                  {group.tricks.length > 0 ? (
+                    <ul className="requirement-list">
+                      {group.tricks.map((trick) => (
+                        <li key={trick.id}>
+                          <span className="mastered-badge">Mastered</span>
+                          <Link className="inline-link" to={`/items/${trick.id}`}>
+                            <span>{trick.name}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="helper-text">No mastered tricks in this category.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="helper-text">No mastered tricks yet.</p>
+          )}
+        </div>
       </section>
     </main>
   )

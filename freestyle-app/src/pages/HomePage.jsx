@@ -10,7 +10,6 @@ function HomePage({ user, onLogout }) {
         <nav className="page-nav">
           <Link to="/profile">Profile</Link>
           <Link to="/items">Items List</Link>
-          <Link to="/items/1">Item Info</Link>
         </nav>
 
         <button type="button" className="primary-button" onClick={onLogout}>
