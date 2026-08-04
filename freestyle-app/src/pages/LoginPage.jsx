@@ -1,27 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
-import { auth, db, isFirebaseConfigured } from '../firebase'
+import { auth, ensureUserProfileDocument, isFirebaseConfigured } from '../firebase'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^.{6,20}$/
-
-const ensureUserProfileDocument = async (user, authProvider) => {
-  if (!db) {
-    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
-  }
-
-  await setDoc(
-    doc(db, 'users', user.uid),
-    {
-      name: user.displayName || user.email?.split('@')[0] || '',
-      email: user.email || '',
-      authProvider,
-    },
-    { merge: true }
-  )
-}
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -52,7 +35,8 @@ function LoginPage() {
         throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
       }
 
-      await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      await ensureUserProfileDocument(userCredential.user, 'login/password', userCredential.user.displayName)
       navigate('/')
     } catch (error) {
       setMessage(error.message)

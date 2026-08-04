@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase'
 import { TRICKS_DATA } from '../data/tricksData'
 
@@ -13,28 +13,41 @@ const CATEGORY_LABELS = {
 
 function ProfilePage({ user }) {
   const [masteredTricks, setMasteredTricks] = useState([])
+  const [profileUsername, setProfileUsername] = useState('')
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    const loadMasteredTricks = async () => {
+    const loadProfile = async () => {
       if (!user?.uid || !db) {
         setMasteredTricks([])
+        setProfileUsername('')
         return
       }
 
       try {
+        const profileSnapshot = await getDoc(doc(db, 'users', user.uid))
+        const savedProfile = profileSnapshot.data() || {}
+        const username = savedProfile.username?.trim()
+
+        if (username) {
+          setProfileUsername(username)
+        } else {
+          setProfileUsername(user.displayName?.trim() || user.email?.split('@')[0] || '')
+        }
+
         const masteredSnapshot = await getDocs(collection(db, 'users', user.uid, 'masteredTricks'))
         const trickIds = masteredSnapshot.docs.map((item) => item.id)
         const trickDetails = TRICKS_DATA.filter((trick) => trickIds.includes(trick.id))
 
         setMasteredTricks(trickDetails)
       } catch (error) {
-        console.error('Failed to load mastered tricks for profile:', error)
-        setMessage('Could not load your mastered tricks. Check Firestore rules and auth.')
+        console.error('Failed to load profile details:', error)
+        setMessage('Could not load your profile details. Check Firestore rules and auth.')
+        setProfileUsername(user.displayName?.trim() || user.email?.split('@')[0] || '')
       }
     }
 
-    loadMasteredTricks()
+    loadProfile()
   }, [user])
 
   const groupedMasteredTricks = Object.entries(CATEGORY_LABELS).map(([key, label]) => ({
@@ -54,7 +67,7 @@ function ProfilePage({ user }) {
           <Link className="inline-link" to="/">Back to home</Link>
         </div>
 
-        <p className="helper-text">{user?.displayName || user?.email || 'Google User'}</p>
+        <p className="helper-text">{profileUsername || user?.email || 'Google User'}</p>
 
         <div className="detail-card">
           <strong>Mastered</strong>

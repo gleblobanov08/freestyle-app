@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const firebaseConfig = {
@@ -31,6 +31,26 @@ export const listenForAuthChanges = (callback) => {
   }
 
   return onAuthStateChanged(auth, callback)
+}
+
+export const ensureUserProfileDocument = async (user, authProvider = 'login/password', usernameOverride = '') => {
+  if (!db) {
+    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
+  }
+
+  const normalizedProvider = authProvider === 'google' ? 'Google' : 'login/password'
+  const username = usernameOverride?.trim() || user.displayName?.trim() || user.email?.split('@')[0] || ''
+
+  await setDoc(
+    doc(db, 'users', user.uid),
+    {
+      uid: user.uid,
+      username,
+      email: user.email || '',
+      authProvider: normalizedProvider,
+    },
+    { merge: true }
+  )
 }
 
 export { app, auth, db, isFirebaseConfigured };

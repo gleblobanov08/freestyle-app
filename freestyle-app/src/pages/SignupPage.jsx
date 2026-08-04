@@ -1,23 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
-import { auth, db, isFirebaseConfigured } from '../firebase'
+import { auth, ensureUserProfileDocument, isFirebaseConfigured } from '../firebase'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^.{6,20}$/
-
-const createUserProfileDocument = async (user, name, authProvider) => {
-  if (!db) {
-    throw new Error('Firebase configuration is missing. Add your Firebase env values first.')
-  }
-
-  await setDoc(doc(db, 'users', user.uid), {
-    name: name?.trim() || user.displayName || '',
-    email: user.email || '',
-    authProvider,
-  })
-}
 
 function SignupPage() {
   const navigate = useNavigate()
@@ -56,7 +43,7 @@ function SignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
 
       await updateProfile(userCredential.user, { displayName: username.trim() })
-      await createUserProfileDocument(userCredential.user, username, 'email')
+      await ensureUserProfileDocument(userCredential.user, 'login/password', username)
 
       navigate('/')
     } catch (error) {
@@ -79,7 +66,7 @@ function SignupPage() {
       provider.setCustomParameters({ prompt: 'select_account' })
 
       const userCredential = await signInWithPopup(auth, provider)
-      await createUserProfileDocument(userCredential.user, userCredential.user.displayName, 'google')
+      await ensureUserProfileDocument(userCredential.user, 'google', userCredential.user.displayName)
 
       navigate('/')
     } catch (error) {
