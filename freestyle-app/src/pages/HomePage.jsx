@@ -5,11 +5,15 @@ function HomePage({ user, onLogout }) {
     <main className="app-shell">
       <section className="auth-card home-panel">
         <h1>home page</h1>
-        <p className="helper-text">Signed in as {user?.displayName || user?.email || 'Guest'}</p>
+        <p className="helper-text">Welcome back, {user?.displayName || user?.email || 'Guest'}</p>
 
         <nav className="page-nav">
-          <Link to="/profile">Profile</Link>
-          <Link to="/items">Items List</Link>
+          <Link className="inline-link" to="/profile">
+            Profile
+          </Link>
+          <Link className="inline-link" to="/items">
+            Items List
+          </Link>
         </nav>
 
         <button type="button" className="primary-button" onClick={onLogout}>

@@ -3,12 +3,38 @@ import { Link, useParams } from 'react-router-dom'
 import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore'
 import { TRICKS_DATA } from '../data/tricksData'
 import { db } from '../firebase'
+import ReactPlayer from 'react-player'
 
 function ItemInfoPage({ user }) {
   const { id } = useParams()
   const trick = TRICKS_DATA.find((item) => item.id === id)
   const [isMastered, setIsMastered] = useState(false)
   const [message, setMessage] = useState('')
+
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) {
+      return null
+    }
+
+    try {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname.includes('youtube.com')) {
+        const videoId = parsedUrl.searchParams.get('v')
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+      }
+
+      if (parsedUrl.hostname === 'youtu.be') {
+        return `https://www.youtube.com/embed/${parsedUrl.pathname.replace('/', '')}`
+      }
+    } catch {
+      return null
+    }
+
+    return null
+  }
+
+  const videoEmbedUrl = trick ? getYouTubeEmbedUrl(trick.videoUrl) : null
 
   useEffect(() => {
     const loadMasteredStatus = async () => {
@@ -112,6 +138,21 @@ function ItemInfoPage({ user }) {
               </button>
             )}
           </div>
+
+          {videoEmbedUrl ? (
+            <div className="video-section">
+              <strong>Video:</strong>
+              <div className="video-wrapper">
+                <iframe
+                  src={videoEmbedUrl}
+                  title={`${trick.name} tutorial`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+              <ReactPlayer url={trick.videoUrl} />
+            </div>
+          ) : null}
 
           <div>
             <strong>Requirements:</strong>

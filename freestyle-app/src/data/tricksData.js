@@ -1,39 +1,45 @@
 export const TRICKS_DATA = [
   {
-    id: 'kickflip',
-    category: 'u',
-    name: 'Kickflip',
-    requirements: ['shuvit'],
+    id: 'atw',
+    category: 'l',
+    name: 'Around the World',
+    requirements: ['footstall'],
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
   {
-    id: 'shuvit',
-    category: 's',
-    name: 'Shuvit',
+    id: 'footstall',
+    category: 'l',
+    name: 'Foot Stall',
     requirements: [],
+    videoUrl: 'https://www.youtube.com/watch?v=2Vv-BfVoq4g',
   },
   {
     id: 'heelflip',
     category: 'u',
     name: 'Heelflip',
-    requirements: ['kickflip'],
+    requirements: ['atw'],
+    videoUrl: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
   },
   {
     id: 'treflip',
-    category: 'u',
+    category: 's',
     name: 'Trey Flip',
     requirements: ['kickflip', 'shuvit'],
+    videoUrl: 'https://www.youtube.com/watch?v=YQHsXMglC9A',
   },
   {
     id: 'ollie',
     category: 'o',
     name: 'Ollie',
     requirements: [],
+    videoUrl: 'https://www.youtube.com/watch?v=hT_nvWreIhg',
   },
   {
     id: 'frontside-180',
     category: 'l',
     name: 'Frontside 180',
     requirements: ['ollie'],
+    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
   },
 ]
 
@@ -51,6 +57,7 @@ export const seedTricksCollection = async (db) => {
         category: trick.category,
         name: trick.name,
         requirements: trick.requirements,
+        videoUrl: trick.videoUrl,
       }, { merge: true })
     )
   )

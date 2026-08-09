@@ -42,7 +42,7 @@ function ProfilePage({ user }) {
         setMasteredTricks(trickDetails)
       } catch (error) {
         console.error('Failed to load profile details:', error)
-        setMessage('Could not load your profile details. Check Firestore rules and auth.')
+        setMessage('Could not load your profile details.')
         setProfileUsername(user.displayName?.trim() || user.email?.split('@')[0] || '')
       }
     }
@@ -91,7 +91,7 @@ function ProfilePage({ user }) {
                       ))}
                     </ul>
                   ) : (
-                    <p className="helper-text">No mastered tricks in this category.</p>
+                    <p className="helper-text">-</p>
                   )}
                 </div>
               ))}
