@@ -4,14 +4,14 @@ export const TRICKS_DATA = [
     category: 'l',
     name: 'Around the World',
     requirements: ['footstall'],
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    videoUrl: 'https://www.youtube.com/watch?v=KbSVHJ1ZLbg',
   },
   {
     id: 'footstall',
     category: 'l',
     name: 'Foot Stall',
     requirements: [],
-    videoUrl: 'https://www.youtube.com/watch?v=2Vv-BfVoq4g',
+    videoUrl: 'https://www.youtube.com/watch?v=1V5-veUb7CI',
   },
   {
     id: 'heelflip',
